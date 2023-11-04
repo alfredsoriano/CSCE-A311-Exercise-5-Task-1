@@ -27,8 +27,9 @@ void huffmanTree::createTree()
 	for (auto pair : histogram) {
 		nodes.push_back(new node(pair.first, pair.second));
 	}
-	sort(nodes.begin(), nodes.end(), [](node* a, node* b) {
-		return a->freq > b->freq;
+	//sorts the vector nodes according to node freq. in ascending order
+	sort(nodes.begin(), nodes.end(), [](node* low, node* high) {
+		return low->freq < high->freq;
 		});
 		
 	while (nodes.size() != 1) {

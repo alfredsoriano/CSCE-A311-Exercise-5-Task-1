@@ -1,10 +1,11 @@
 #include "huffmanTree.h"
 
-//constructor calculates histogram from the input string, then creates a tree from that histogram
+//constructor makes a histogram of char occurences in inputString, then makes the tree using that histogram,
+//then creates the code map using the created tree, then creates the binary code using that code map, 
+//then decodes the binary code using the tree.
 huffmanTree::huffmanTree(string inputString)
 {
-	createHistogram(inputString);
-	createTree();
+	this->inputString = inputString;
 }
 
 node* huffmanTree::newNode(char ch, int freq, node* left, node* right)
@@ -27,6 +28,7 @@ void huffmanTree::createTree()
 	for (auto pair : histogram) {
 		nodes.push_back(new node(pair.first, pair.second));
 	}
+
 	//sorts the vector nodes according to node freq. in ascending order
 	sort(nodes.begin(), nodes.end(), [](node* low, node* high) {
 		return low->freq < high->freq;
@@ -41,13 +43,6 @@ void huffmanTree::createTree()
 		nodes.push_back(newNode('\0', left->freq + right->freq, left, right));
 	}
 	root = nodes.front();
-
-	//once the tree is constructed, create codes for each leaf node, and put
-	//the results in the "codes" map.
-	createCodes(root, "");
-	for (auto pair : codes) {
-		cout << pair.first << " " << pair.second << '\n';
-	}
 }
 
 void huffmanTree::createHistogram(string inputString)
@@ -59,32 +54,76 @@ void huffmanTree::createHistogram(string inputString)
 }
 
 //Subtask B) "convert this string into a binary string using the Huffman tree"
-void huffmanTree::createCodes(node* node, string code)
+map<char, string> huffmanTree::createCodes(node* node, string code)
 {
-	if (node->left) {
+	if (node->left) 
 		createCodes(node->left, code + "0");
-	}
-	if (node->right) {
+
+	if (node->right) 
 		createCodes(node->right, code + "1");
-	}
-	if (!node->left && !node->right) {
+
+	if (!node->left && !node->right)
 		codes[node->ch] = code;
-	}
+
+	return codes;
 }
 
-
-//uses inorder traversal to print the tree
-void huffmanTree::printTree(node* node)
+string huffmanTree::createBinaryCode(string inputString)
 {
-	if (node != nullptr) {
-		printTree(node->left);
-		if (node->ch != NULL)
-			cout << "Char: " << node->ch << ", Frequency: " << node->freq << endl;
-		printTree(node->right);
+	//for each character in the input string...
+	for (char ch : inputString) {
+		for (auto pair : codes) {
+			if (ch == pair.first)
+				binaryCode += pair.second;
+		}
 	}
+
+	return binaryCode;
+}
+
+string huffmanTree::decodeBinaryCode(node* root, string binaryCode)
+{
+	string decodedString = "";
+	node* curr = root;
+
+	//for each character in binaryCode...
+	for (char ch : binaryCode) {
+		if (ch == '0')
+			curr = curr->left;
+		else
+			curr = curr->right;
+
+		//if we reached a leaf node...
+		if ((curr->left == nullptr) and (curr->right == nullptr)) {
+			decodedString += curr->ch;
+			curr = root;
+		}
+	}
+
+	return decodedString;
+}
+
+string huffmanTree::getInputString()
+{
+	return inputString;
 }
 
 node* huffmanTree::getRoot()
 {
 	return root;
+}
+
+string huffmanTree::getBinaryCode()
+{
+	return binaryCode;
+}
+
+map<char, int> huffmanTree::getHistogram()
+{
+	return histogram;
+}
+
+map<char, string> huffmanTree::getCodes()
+{
+	return codes;
 }
